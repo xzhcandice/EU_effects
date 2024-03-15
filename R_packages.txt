@@ -1,0 +1,12 @@
+# List of packages used in the project
+packages <- c("Synth", "readxl", "dplyr", "ggplot2", "grid", "png", "gridExtra")
+
+# Function to install missing packages
+install_if_missing <- function(packages) {
+  new_packages <- packages[!(packages %in% installed.packages()[, "Package"])]
+  if (length(new_packages)) install.packages(new_packages)
+  invisible(lapply(packages, library, character.only = TRUE))
+}
+
+# Install missing packages
+install_if_missing(packages)

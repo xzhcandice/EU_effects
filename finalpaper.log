@@ -1,0 +1,1006 @@
+---------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/xzhcandice/Documents/W2/Econ203Data/finalpaper.log
+  log type:  text
+ opened on:  23 Dec 2023, 18:08:37
+
+. clear
+
+. 
+. use wbiclean203.dta, clear
+file wbiclean203.dta not found
+r(601);
+
+. use wbicleaned.dta, clear
+
+. 
+. 
+. keep countrycode year country GDP GDP_PC GDP_PC_PPP GDP_PPP ODAAndAid_Received NetODA
+> Received FDIInflow Percent_FDIInflow_GDP Remittances_Paid Remittances_Received Touris
+> m_NumberofArrivals TourismReceipts
+
+. 
+. // also need to drop the year 2019, no data
+/ is not a valid command name
+r(199);
+
+. drop if year==2019
+(219 observations deleted)
+
+. 
+. gen yearjoined= 1958 if country == "Belgium" | country == "France" | country == "Germ
+> any"| country == "Italy"| country == "Luxembourg"| country == "Netherlands"
+(12,567 missing values generated)
+
+. replace yearjoined= 1973 if country == "Denamrk" | country == "Ireland" 
+(59 real changes made)
+
+. replace yearjoined= 1981 if country== "Greece" 
+(59 real changes made)
+
+. replace yearjoined= 1986 if country == "Portugal" | country == "Spain"
+(118 real changes made)
+
+. replace yearjoined= 1995 if country == "Austria" | country == "Finland" | country == 
+> "Sweden"
+(177 real changes made)
+
+. replace yearjoined= 2004 if country == "Cyprus" | country == "Czech Republic" | count
+> ry== "Estonia" | country == "Hungary" | country == "Latvia" | country== "Lithuania" |
+>  country== "Malta" | country == "Poland" | country== "Slovakia" | country== "Slovenia
+> "
+(531 real changes made)
+
+. replace yearjoined= 2007 if country == "Bulgaria" | country == "Romania" 
+(118 real changes made)
+
+. replace yearjoined= 2013 if country == "Croatia"
+(59 real changes made)
+
+. //will also need to later drop EU countries that joined in 1958 bcz of lack of data b
+> efore they joined
+/ is not a valid command name
+r(199);
+
+. 
+. gen inEU = 0 
+
+. replace inEU=1 if year >= yearjoined 
+(741 real changes made)
+
+. replace inEU=0 if yearjoined == .
+(0 real changes made)
+
+. 
+. gen Europe_countries = 0
+
+. 
+. gen EUcountries = 0
+
+. replace EUcountries = 1 if yearjoined !=.
+(1,475 real changes made)
+
+. replace Europe_countries= 1 if EUcountries == 1
+(1,475 real changes made)
+
+. 
+. replace Europe_countries = 1 if country == "Andorra" | country == "Belarus"| country 
+> == "Iceland" ///
+invalid syntax
+r(198);
+
+. | country == "Liechtenstein"| country == "Moldova"| country == "Monaco"| country == "
+> Norway"| country == "Russia"| country == "San Marino"| country == "Switzerland" ///
+| is not a valid command name
+r(199);
+
+. | country == "Ukraine"| country == "Bosnia and Herzegovina" | country == "Albania"| c
+> ountry == "Montenegro" | country == "Serbia" ///
+| is not a valid command name
+r(199);
+
+. | country == "North Macedonia"
+| is not a valid command name
+r(199);
+
+. 
+. // dropped Kosovo, UK, armenia, geargia, azerbaijan, vatican, turkey out of Europe_co
+> untries
+/ is not a valid command name
+r(199);
+
+. 
+. egen countryid=group(country)
+
+. reghdfe ODAAndAid_Received inEU, absorb(year countryid)
+(MWFE estimator converged in 6 iterations)
+
+HDFE Linear regression                            Number of obs   =      8,486
+Absorbing 2 HDFE groups                           F(   1,   8247) =       0.08
+                                                  Prob > F        =     0.7795
+                                                  R-squared       =     0.7439
+                                                  Adj R-squared   =     0.7365
+                                                  Within R-sq.    =     0.0000
+                                                  Root MSE        =  8.541e+08
+
+------------------------------------------------------------------------------
+ODAAndAid_~d |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        inEU |  -8.44e+07   3.01e+08    -0.28   0.780    -6.75e+08    5.06e+08
+       _cons |   5.80e+08    9276994    62.53   0.000     5.62e+08    5.98e+08
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+        year |        58           0          58     |
+   countryid |       181           1         180     |
+-----------------------------------------------------+
+
+. reg ODAAndAid_Received inEU
+
+      Source |       SS           df       MS      Number of obs   =     8,486
+-------------+----------------------------------   F(1, 8484)      =      0.13
+       Model |  3.6515e+17         1  3.6515e+17   Prob > F        =    0.7165
+    Residual |  2.3489e+22     8,484  2.7686e+18   R-squared       =    0.0000
+-------------+----------------------------------   Adj R-squared   =   -0.0001
+       Total |  2.3489e+22     8,485  2.7683e+18   Root MSE        =    1.7e+09
+
+------------------------------------------------------------------------------
+ODAAndAid_~d |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        inEU |  -2.02e+08   5.55e+08    -0.36   0.716    -1.29e+09    8.86e+08
+       _cons |   5.80e+08   1.81e+07    32.11   0.000     5.45e+08    6.16e+08
+------------------------------------------------------------------------------
+
+. 
+. gen lnFDI = ln(FDIInflow)
+(5,609 missing values generated)
+
+. reghdfe lnFDI inEU, absorb(year countryid)
+(dropped 1 singleton observations)
+(MWFE estimator converged in 6 iterations)
+
+HDFE Linear regression                            Number of obs   =      7,311
+Absorbing 2 HDFE groups                           F(   1,   7057) =       5.61
+                                                  Prob > F        =     0.0179
+                                                  R-squared       =     0.8300
+                                                  Adj R-squared   =     0.8239
+                                                  Within R-sq.    =     0.0008
+                                                  Root MSE        =     1.3110
+
+------------------------------------------------------------------------------
+       lnFDI |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        inEU |   .2628256   .1109557     2.37   0.018     .0453192     .480332
+       _cons |   19.00137   .0176573  1076.12   0.000     18.96676    19.03599
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+        year |        49           0          49     |
+   countryid |       205           1         204     |
+-----------------------------------------------------+
+
+. reg lnFDI inEU
+
+      Source |       SS           df       MS      Number of obs   =     7,312
+-------------+----------------------------------   F(1, 7310)      =    800.32
+       Model |  7041.93435         1  7041.93435   Prob > F        =    0.0000
+    Residual |  64320.3199     7,310  8.79894937   R-squared       =    0.0987
+-------------+----------------------------------   Adj R-squared   =    0.0986
+       Total |  71362.2542     7,311  9.76094299   Root MSE        =    2.9663
+
+------------------------------------------------------------------------------
+       lnFDI |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        inEU |    3.64005   .1286698    28.29   0.000      3.38782     3.89228
+       _cons |   18.73457   .0361449   518.32   0.000     18.66372    18.80543
+------------------------------------------------------------------------------
+
+. 
+. gen lnTourismReceipts = ln(TourismReceipts)
+(8,609 missing values generated)
+
+. reghdfe TourismReceipts inEU, absorb(year countryid)
+(dropped 1 singleton observations)
+(MWFE estimator converged in 5 iterations)
+
+HDFE Linear regression                            Number of obs   =      4,311
+Absorbing 2 HDFE groups                           F(   1,   4085) =       7.53
+                                                  Prob > F        =     0.0061
+                                                  R-squared       =     0.8770
+                                                  Adj R-squared   =     0.8702
+                                                  Within R-sq.    =     0.0018
+                                                  Root MSE        =  5.534e+09
+
+------------------------------------------------------------------------------
+TourismRec~s |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        inEU |  -1.94e+09   7.09e+08    -2.74   0.006    -3.33e+09   -5.55e+08
+       _cons |   5.46e+09   1.12e+08    48.55   0.000     5.23e+09    5.68e+09
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+        year |        23           0          23     |
+   countryid |       203           1         202     |
+-----------------------------------------------------+
+
+. reg TourismReceipts inEU
+
+      Source |       SS           df       MS      Number of obs   =     4,312
+-------------+----------------------------------   F(1, 4310)      =    207.12
+       Model |  4.6624e+22         1  4.6624e+22   Prob > F        =    0.0000
+    Residual |  9.7019e+23     4,310  2.2510e+20   R-squared       =    0.0459
+-------------+----------------------------------   Adj R-squared   =    0.0456
+       Total |  1.0168e+24     4,311  2.3587e+20   Root MSE        =    1.5e+10
+
+------------------------------------------------------------------------------
+TourismRec~s |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        inEU |   1.07e+10   7.46e+08    14.39   0.000     9.27e+09    1.22e+10
+       _cons |   4.12e+09   2.41e+08    17.08   0.000     3.65e+09    4.60e+09
+------------------------------------------------------------------------------
+
+. 
+. gen lnGDP_PC_PPP = ln(GDP_PC_PPP)
+(7,452 missing values generated)
+
+. reghdfe GDP_PPP inEU, absorb(year countryid)
+(MWFE estimator converged in 5 iterations)
+
+HDFE Linear regression                            Number of obs   =      5,478
+Absorbing 2 HDFE groups                           F(   1,   5251) =       8.37
+                                                  Prob > F        =     0.0038
+                                                  R-squared       =     0.8611
+                                                  Adj R-squared   =     0.8551
+                                                  Within R-sq.    =     0.0016
+                                                  Root MSE        =  5.859e+11
+
+------------------------------------------------------------------------------
+     GDP_PPP |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        inEU |  -1.83e+11   6.34e+10    -2.89   0.004    -3.08e+11   -5.92e+10
+       _cons |   4.76e+11   9.99e+09    47.62   0.000     4.56e+11    4.95e+11
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+        year |        29           0          29     |
+   countryid |       198           1         197     |
+-----------------------------------------------------+
+
+. reg GDP_PC_PPP inEU
+
+      Source |       SS           df       MS      Number of obs   =     5,469
+-------------+----------------------------------   F(1, 5467)      =    617.59
+       Model |  2.0271e+11         1  2.0271e+11   Prob > F        =    0.0000
+    Residual |  1.7944e+12     5,467   328225215   R-squared       =    0.1015
+-------------+----------------------------------   Adj R-squared   =    0.1013
+       Total |  1.9971e+12     5,468   365237284   Root MSE        =     18117
+
+------------------------------------------------------------------------------
+  GDP_PC_PPP |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        inEU |   20649.22   830.9057    24.85   0.000     19020.31    22278.12
+       _cons |   14256.17   257.6859    55.32   0.000        13751    14761.33
+------------------------------------------------------------------------------
+
+. 
+. gen lnODAAndAid_Received = ln(ODAAndAid_Received)
+(4,604 missing values generated)
+
+. reghdfe GDP_PPP inEU, absorb(year countryid)
+(MWFE estimator converged in 5 iterations)
+
+HDFE Linear regression                            Number of obs   =      5,478
+Absorbing 2 HDFE groups                           F(   1,   5251) =       8.37
+                                                  Prob > F        =     0.0038
+                                                  R-squared       =     0.8611
+                                                  Adj R-squared   =     0.8551
+                                                  Within R-sq.    =     0.0016
+                                                  Root MSE        =  5.859e+11
+
+------------------------------------------------------------------------------
+     GDP_PPP |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        inEU |  -1.83e+11   6.34e+10    -2.89   0.004    -3.08e+11   -5.92e+10
+       _cons |   4.76e+11   9.99e+09    47.62   0.000     4.56e+11    4.95e+11
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+        year |        29           0          29     |
+   countryid |       198           1         197     |
+-----------------------------------------------------+
+
+. reg ODAAndAid_Received inEU
+
+      Source |       SS           df       MS      Number of obs   =     8,486
+-------------+----------------------------------   F(1, 8484)      =      0.13
+       Model |  3.6515e+17         1  3.6515e+17   Prob > F        =    0.7165
+    Residual |  2.3489e+22     8,484  2.7686e+18   R-squared       =    0.0000
+-------------+----------------------------------   Adj R-squared   =   -0.0001
+       Total |  2.3489e+22     8,485  2.7683e+18   Root MSE        =    1.7e+09
+
+------------------------------------------------------------------------------
+ODAAndAid_~d |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        inEU |  -2.02e+08   5.55e+08    -0.36   0.716    -1.29e+09    8.86e+08
+       _cons |   5.80e+08   1.81e+07    32.11   0.000     5.45e+08    6.16e+08
+------------------------------------------------------------------------------
+
+. 
+. reg ODAAndAid_Received inEU
+
+      Source |       SS           df       MS      Number of obs   =     8,486
+-------------+----------------------------------   F(1, 8484)      =      0.13
+       Model |  3.6515e+17         1  3.6515e+17   Prob > F        =    0.7165
+    Residual |  2.3489e+22     8,484  2.7686e+18   R-squared       =    0.0000
+-------------+----------------------------------   Adj R-squared   =   -0.0001
+       Total |  2.3489e+22     8,485  2.7683e+18   Root MSE        =    1.7e+09
+
+------------------------------------------------------------------------------
+ODAAndAid_~d |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        inEU |  -2.02e+08   5.55e+08    -0.36   0.716    -1.29e+09    8.86e+08
+       _cons |   5.80e+08   1.81e+07    32.11   0.000     5.45e+08    6.16e+08
+------------------------------------------------------------------------------
+
+. 
+. reg lnFDI inEU
+
+      Source |       SS           df       MS      Number of obs   =     7,312
+-------------+----------------------------------   F(1, 7310)      =    800.32
+       Model |  7041.93435         1  7041.93435   Prob > F        =    0.0000
+    Residual |  64320.3199     7,310  8.79894937   R-squared       =    0.0987
+-------------+----------------------------------   Adj R-squared   =    0.0986
+       Total |  71362.2542     7,311  9.76094299   Root MSE        =    2.9663
+
+------------------------------------------------------------------------------
+       lnFDI |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        inEU |    3.64005   .1286698    28.29   0.000      3.38782     3.89228
+       _cons |   18.73457   .0361449   518.32   0.000     18.66372    18.80543
+------------------------------------------------------------------------------
+
+. 
+. reg GDP_PC_PPP inEU
+
+      Source |       SS           df       MS      Number of obs   =     5,469
+-------------+----------------------------------   F(1, 5467)      =    617.59
+       Model |  2.0271e+11         1  2.0271e+11   Prob > F        =    0.0000
+    Residual |  1.7944e+12     5,467   328225215   R-squared       =    0.1015
+-------------+----------------------------------   Adj R-squared   =    0.1013
+       Total |  1.9971e+12     5,468   365237284   Root MSE        =     18117
+
+------------------------------------------------------------------------------
+  GDP_PC_PPP |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        inEU |   20649.22   830.9057    24.85   0.000     19020.31    22278.12
+       _cons |   14256.17   257.6859    55.32   0.000        13751    14761.33
+------------------------------------------------------------------------------
+
+. 
+. reg lnGDP_PC_PPP inEU
+
+      Source |       SS           df       MS      Number of obs   =     5,469
+-------------+----------------------------------   F(1, 5467)      =    827.82
+       Model |  1071.81537         1  1071.81537   Prob > F        =    0.0000
+    Residual |  7078.40306     5,467  1.29475088   R-squared       =    0.1315
+-------------+----------------------------------   Adj R-squared   =    0.1313
+       Total |  8150.21843     5,468  1.49053007   Root MSE        =    1.1379
+
+------------------------------------------------------------------------------
+lnGDP_PC_PPP |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        inEU |   1.501502   .0521866    28.77   0.000     1.399195    1.603808
+       _cons |   8.891975   .0161844   549.41   0.000     8.860247    8.923703
+------------------------------------------------------------------------------
+
+. 
+. reg lnODAAndAid_Received inEU
+
+      Source |       SS           df       MS      Number of obs   =     8,317
+-------------+----------------------------------   F(1, 8315)      =      0.08
+       Model |  .329308512         1  .329308512   Prob > F        =    0.7784
+    Residual |  34573.4674     8,315  4.15796361   R-squared       =    0.0000
+-------------+----------------------------------   Adj R-squared   =   -0.0001
+       Total |  34573.7967     8,316  4.15750321   Root MSE        =    2.0391
+
+------------------------------------------------------------------------------
+lnODAAndAi~d |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        inEU |   .1913883   .6800709     0.28   0.778     -1.14172    1.524497
+       _cons |   18.70412   .0223713   836.07   0.000     18.66027    18.74797
+------------------------------------------------------------------------------
+
+. 
+. reg lnTourismReceipts inEU
+
+      Source |       SS           df       MS      Number of obs   =     4,312
+-------------+----------------------------------   F(1, 4310)      =    665.73
+       Model |  3205.98572         1  3205.98572   Prob > F        =    0.0000
+    Residual |   20755.707     4,310  4.81570928   R-squared       =    0.1338
+-------------+----------------------------------   Adj R-squared   =    0.1336
+       Total |  23961.6927     4,311  5.55826785   Root MSE        =    2.1945
+
+------------------------------------------------------------------------------
+lnTourismR~s |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        inEU |   2.814863   .1090954    25.80   0.000      2.60098    3.028746
+       _cons |   19.97143   .0353213   565.42   0.000     19.90218    20.04068
+------------------------------------------------------------------------------
+
+. 
+. reghdfe lnFDI inEU, absorb(year countryid)
+(dropped 1 singleton observations)
+(MWFE estimator converged in 6 iterations)
+
+HDFE Linear regression                            Number of obs   =      7,311
+Absorbing 2 HDFE groups                           F(   1,   7057) =       5.61
+                                                  Prob > F        =     0.0179
+                                                  R-squared       =     0.8300
+                                                  Adj R-squared   =     0.8239
+                                                  Within R-sq.    =     0.0008
+                                                  Root MSE        =     1.3110
+
+------------------------------------------------------------------------------
+       lnFDI |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        inEU |   .2628256   .1109557     2.37   0.018     .0453192     .480332
+       _cons |   19.00137   .0176573  1076.12   0.000     18.96676    19.03599
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+        year |        49           0          49     |
+   countryid |       205           1         204     |
+-----------------------------------------------------+
+
+. 
+. ssc install synth, replace
+checking synth consistency and verifying not already installed...
+installing into /Users/xzhcandice/Library/Application Support/Stata/ado/plus/...
+installation complete.
+
+. 
+. * List the unique values of 'country' where 'EUcountries' equals 1
+
+. levelsof country if EUcountries == 1, local(EUList)
+`"Austria"' `"Belgium"' `"Bulgaria"' `"Croatia"' `"Cyprus"' `"Czech Republic"' `"Estoni
+> a"' `"Finland"' `"France"' `"Germany"' `"Greece"' `"Hungary"' `"Ireland"' `"Italy"' `
+> "Latvia"' `"Lithuania"' `"Luxembourg"' `"Malta"' `"Netherlands"' `"Poland"' `"Portuga
+> l"' `"Romania"' `"Slovenia"' `"Spain"' `"Sweden"'
+
+. 
+. * Display the list of EU countries
+
+. di "`EUList'"
+`Austria"' `"Belgium"' `"Bulgaria"' `"Croatia"' `"Cyprus"' `"Czech invalid name
+r(198);
+
+. * Ensure that 'country' is a categorical variable
+
+. encode country, gen(countrycode)
+variable countrycode already defined
+r(110);
+
+. 
+. * Generate a variable that identifies EU countries in a particular year
+
+. gen EUcountries = 0
+variable EUcountries already defined
+r(110);
+
+. replace EUcountries = 1 if yearjoined !=. & year >= yearjoined
+(0 real changes made)
+
+. 
+. * List the unique values of 'country' where 'EUcountries' equals 1
+
+. levelsof country if EUcountries == 1, local(EUList)
+`"Austria"' `"Belgium"' `"Bulgaria"' `"Croatia"' `"Cyprus"' `"Czech Republic"' `"Estonia"' `"Finl
+> and"' `"France"' `"Germany"' `"Greece"' `"Hungary"' `"Ireland"' `"Italy"' `"Latvia"' `"Lithuani
+> a"' `"Luxembourg"' `"Malta"' `"Netherlands"' `"Poland"' `"Portugal"' `"Romania"' `"Slovenia"' `
+> "Spain"' `"Sweden"'
+
+. 
+. * Display the list of EU countries
+
+. di "`EUList'"
+`Austria"' `"Belgium"' `"Bulgaria"' `"Croatia"' `"Cyprus"' `"Czech invalid name
+r(198);
+
+. 
+. * Generate a variable that identifies EU countries in a particular year
+
+. gen EUcountries = 0
+variable EUcountries already defined
+r(110);
+
+. replace EUcountries = 1 if yearjoined !=. & year >= yearjoined
+(0 real changes made)
+
+. 
+. * List the unique values of 'country' where 'EUcountries' equals 1
+
+. levelsof country if EUcountries == 1, local(EUList) separator(",")
+option separator() not allowed
+r(198);
+
+. 
+. * Display the list of EU countries
+
+. di "`EUList'"
+`Austria"' `"Belgium"' `"Bulgaria"' `"Croatia"' `"Cyprus"' `"Czech invalid name
+r(198);
+
+. * Ensure that 'country' is a categorical variable
+
+. encode country, gen(countrycode)
+variable countrycode already defined
+r(110);
+
+. 
+. * Generate a variable that identifies EU countries in a particular year
+
+. gen EUcountries = 0
+variable EUcountries already defined
+r(110);
+
+. replace EUcountries = 1 if yearjoined !=. & year >= yearjoined
+(0 real changes made)
+
+. 
+. * List the unique values of 'country' where 'EUcountries' equals 1
+
+. levelsof country if EUcountries == 1, local(EUList)
+`"Austria"' `"Belgium"' `"Bulgaria"' `"Croatia"' `"Cyprus"' `"Czech Republic"' `"Estonia"' `"Finl
+> and"' `"France"' `"Germany"' `"Greece"' `"Hungary"' `"Ireland"' `"Italy"' `"Latvia"' `"Lithuani
+> a"' `"Luxembourg"' `"Malta"' `"Netherlands"' `"Poland"' `"Portugal"' `"Romania"' `"Slovenia"' `
+> "Spain"' `"Sweden"'
+
+. 
+. * Format the list with quotes for each country name
+
+. local EUListFormatted: list EUList , sep(" ")
+invalid syntax
+r(198);
+
+. 
+. * Display the formatted list of EU countries
+
+. di "`EUListFormatted'"
+
+
+. * Run the synth command for each EU country
+
+. foreach country in `EUListFormatted' {
+  2.     synth `predictors' `predictors_ln', trunit(`country') trperiod([Year EU joined]) gen(`co
+> untry'_synth)
+  3. }
+
+. 
+. local predictors GDP_PC GDP_PC_PPP GDP_PPP ODAAndAid_Received FDIInflow Tourism_NumberofArrival
+> s TourismReceipts
+
+. local predictors_ln lnFDI lnTourismReceipts lnGDP_PC_PPP lnODAAndAid_Received
+
+. local timevar year
+
+. local unitvar countryid
+
+. foreach country in `EUListFormatted' {
+  2.     synth `predictors' `predictors_ln', trunit(`country') trperiod([Year EU joined]) gen(`co
+> untry'_synth)
+  3. }
+
+. 
+. foreach country in `EUListFormatted' {
+  2.     tsset `unitvar' `timevar'
+  3.     tsline GDP_PC_PPP `country'_synth if `unitvar' == `country'
+  4. }
+
+. 
+. local EUListFormatted "Austria" "Belgium" "Bulgaria" "Croatia" "Cyprus" "Czech Republic" "Denma
+> rk" "Estonia" "Finland" "France" "Germany" "Greece" "Hungary" "Ireland" "Italy" "Latvia" "Lithu
+> ania" "Luxembourg" "Malta" "Netherlands" "Poland" "Portugal" "Romania" "Slovakia" "Slovenia" "S
+> pain" "Sweden"
+
+. 
+. clear
+
+. 
+. use wbicleaned.dta, clear
+
+. 
+. keep countrycode year country GDP GDP_PC GDP_PC_PPP GDP_PPP ODAAndAid_Received NetODAReceived F
+> DIInflow Percent_FDIInflow_GDP Remittances_Paid Remittances_Received Tourism_NumberofArrivals T
+> ourismReceipts
+
+. 
+. // also need to drop the year 2019, no data
+/ is not a valid command name
+r(199);
+
+. drop if year==2019
+(219 observations deleted)
+
+. 
+. gen yearjoined= 1958 if country == "Belgium" | country == "France" | country == "Germany"| coun
+> try == "Italy"| country == "Luxembourg"| country == "Netherlands"
+(12,567 missing values generated)
+
+. replace yearjoined= 1973 if country == "Denamrk" | country == "Ireland" 
+(59 real changes made)
+
+. replace yearjoined= 1981 if country== "Greece" 
+(59 real changes made)
+
+. replace yearjoined= 1986 if country == "Portugal" | country == "Spain"
+(118 real changes made)
+
+. replace yearjoined= 1995 if country == "Austria" | country == "Finland" | country == "Sweden"
+(177 real changes made)
+
+. replace yearjoined= 2004 if country == "Cyprus" | country == "Czech Republic" | country== "Esto
+> nia" | country == "Hungary" | country == "Latvia" | country== "Lithuania" | country== "Malta" |
+>  country == "Poland" | country== "Slovakia" | country== "Slovenia"
+(531 real changes made)
+
+. replace yearjoined= 2007 if country == "Bulgaria" | country == "Romania" 
+(118 real changes made)
+
+. replace yearjoined= 2013 if country == "Croatia"
+(59 real changes made)
+
+. //will also need to later drop EU countries that joined in 1958 bcz of lack of data before they
+>  joined
+/ is not a valid command name
+r(199);
+
+. 
+. gen inEU = 0 
+
+. replace inEU=1 if year >= yearjoined 
+(741 real changes made)
+
+. replace inEU=0 if yearjoined == .
+(0 real changes made)
+
+. 
+. gen Europe_countries = 0
+
+. 
+. gen EUcountries = 0
+
+. replace EUcountries = 1 if yearjoined !=.
+(1,475 real changes made)
+
+. replace Europe_countries= 1 if EUcountries == 1
+(1,475 real changes made)
+
+. 
+. replace Europe_countries = 1 if country == "Andorra" | country == "Belarus"| country == "Icelan
+> d" ///
+invalid syntax
+r(198);
+
+. | country == "Liechtenstein"| country == "Moldova"| country == "Monaco"| country == "Norway"| c
+> ountry == "Russia"| country == "San Marino"| country == "Switzerland" ///
+| is not a valid command name
+r(199);
+
+. | country == "Ukraine"| country == "Bosnia and Herzegovina" | country == "Albania"| country == 
+> "Montenegro" | country == "Serbia" ///
+| is not a valid command name
+r(199);
+
+. | country == "North Macedonia"
+| is not a valid command name
+r(199);
+
+. 
+. // dropped Kosovo, UK, armenia, geargia, azerbaijan, vatican, turkey out of Europe_countries
+/ is not a valid command name
+r(199);
+
+. 
+. egen countryid=group(country)
+
+. reghdfe ODAAndAid_Received inEU, absorb(year countryid)
+(MWFE estimator converged in 6 iterations)
+
+HDFE Linear regression                            Number of obs   =      8,486
+Absorbing 2 HDFE groups                           F(   1,   8247) =       0.08
+                                                  Prob > F        =     0.7795
+                                                  R-squared       =     0.7439
+                                                  Adj R-squared   =     0.7365
+                                                  Within R-sq.    =     0.0000
+                                                  Root MSE        =  8.541e+08
+
+------------------------------------------------------------------------------
+ODAAndAid_~d |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        inEU |  -8.44e+07   3.01e+08    -0.28   0.780    -6.75e+08    5.06e+08
+       _cons |   5.80e+08    9276994    62.53   0.000     5.62e+08    5.98e+08
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+        year |        58           0          58     |
+   countryid |       181           1         180     |
+-----------------------------------------------------+
+
+. reg ODAAndAid_Received inEU
+
+      Source |       SS           df       MS      Number of obs   =     8,486
+-------------+----------------------------------   F(1, 8484)      =      0.13
+       Model |  3.6515e+17         1  3.6515e+17   Prob > F        =    0.7165
+    Residual |  2.3489e+22     8,484  2.7686e+18   R-squared       =    0.0000
+-------------+----------------------------------   Adj R-squared   =   -0.0001
+       Total |  2.3489e+22     8,485  2.7683e+18   Root MSE        =    1.7e+09
+
+------------------------------------------------------------------------------
+ODAAndAid_~d |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        inEU |  -2.02e+08   5.55e+08    -0.36   0.716    -1.29e+09    8.86e+08
+       _cons |   5.80e+08   1.81e+07    32.11   0.000     5.45e+08    6.16e+08
+------------------------------------------------------------------------------
+
+. 
+. gen lnFDI = ln(FDIInflow)
+(5,609 missing values generated)
+
+. reghdfe lnFDI inEU, absorb(year countryid)
+(dropped 1 singleton observations)
+(MWFE estimator converged in 6 iterations)
+
+HDFE Linear regression                            Number of obs   =      7,311
+Absorbing 2 HDFE groups                           F(   1,   7057) =       5.61
+                                                  Prob > F        =     0.0179
+                                                  R-squared       =     0.8300
+                                                  Adj R-squared   =     0.8239
+                                                  Within R-sq.    =     0.0008
+                                                  Root MSE        =     1.3110
+
+------------------------------------------------------------------------------
+       lnFDI |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        inEU |   .2628256   .1109557     2.37   0.018     .0453192     .480332
+       _cons |   19.00137   .0176573  1076.12   0.000     18.96676    19.03599
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+        year |        49           0          49     |
+   countryid |       205           1         204     |
+-----------------------------------------------------+
+
+. reg lnFDI inEU
+
+      Source |       SS           df       MS      Number of obs   =     7,312
+-------------+----------------------------------   F(1, 7310)      =    800.32
+       Model |  7041.93435         1  7041.93435   Prob > F        =    0.0000
+    Residual |  64320.3199     7,310  8.79894937   R-squared       =    0.0987
+-------------+----------------------------------   Adj R-squared   =    0.0986
+       Total |  71362.2542     7,311  9.76094299   Root MSE        =    2.9663
+
+------------------------------------------------------------------------------
+       lnFDI |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        inEU |    3.64005   .1286698    28.29   0.000      3.38782     3.89228
+       _cons |   18.73457   .0361449   518.32   0.000     18.66372    18.80543
+------------------------------------------------------------------------------
+
+. 
+. gen lnTourismReceipts = ln(TourismReceipts)
+(8,609 missing values generated)
+
+. reghdfe lnTourismReceipts inEU, absorb(year countryid)
+(dropped 1 singleton observations)
+(MWFE estimator converged in 5 iterations)
+
+HDFE Linear regression                            Number of obs   =      4,311
+Absorbing 2 HDFE groups                           F(   1,   4085) =       6.54
+                                                  Prob > F        =     0.0106
+                                                  R-squared       =     0.9537
+                                                  Adj R-squared   =     0.9511
+                                                  Within R-sq.    =     0.0016
+                                                  Root MSE        =     0.5213
+
+------------------------------------------------------------------------------
+lnTourismR~s |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        inEU |  -.1707675   .0667623    -2.56   0.011     -.301658   -.0398771
+       _cons |   20.28439   .0105849  1916.36   0.000     20.26364    20.30514
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+        year |        23           0          23     |
+   countryid |       203           1         202     |
+-----------------------------------------------------+
+
+. reg lnTourismReceipts inEU
+
+      Source |       SS           df       MS      Number of obs   =     4,312
+-------------+----------------------------------   F(1, 4310)      =    665.73
+       Model |  3205.98572         1  3205.98572   Prob > F        =    0.0000
+    Residual |   20755.707     4,310  4.81570928   R-squared       =    0.1338
+-------------+----------------------------------   Adj R-squared   =    0.1336
+       Total |  23961.6927     4,311  5.55826785   Root MSE        =    2.1945
+
+------------------------------------------------------------------------------
+lnTourismR~s |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        inEU |   2.814863   .1090954    25.80   0.000      2.60098    3.028746
+       _cons |   19.97143   .0353213   565.42   0.000     19.90218    20.04068
+------------------------------------------------------------------------------
+
+. 
+. gen lnGDP_PC_PPP = ln(GDP_PC_PPP)
+(7,452 missing values generated)
+
+. reghdfe lnGDP_PPP inEU, absorb(year countryid)
+variable lnGDP_PPP not found
+r(111);
+
+. reg lnGDP_PC_PPP inEU
+
+      Source |       SS           df       MS      Number of obs   =     5,469
+-------------+----------------------------------   F(1, 5467)      =    827.82
+       Model |  1071.81537         1  1071.81537   Prob > F        =    0.0000
+    Residual |  7078.40306     5,467  1.29475088   R-squared       =    0.1315
+-------------+----------------------------------   Adj R-squared   =    0.1313
+       Total |  8150.21843     5,468  1.49053007   Root MSE        =    1.1379
+
+------------------------------------------------------------------------------
+lnGDP_PC_PPP |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        inEU |   1.501502   .0521866    28.77   0.000     1.399195    1.603808
+       _cons |   8.891975   .0161844   549.41   0.000     8.860247    8.923703
+------------------------------------------------------------------------------
+
+. 
+. gen lnODAAndAid_Received = ln(ODAAndAid_Received)
+(4,604 missing values generated)
+
+. reghdfe lnGDP_PPP inEU, absorb(year countryid)
+variable lnGDP_PPP not found
+r(111);
+
+. reg lnODAAndAid_Received inEU
+
+      Source |       SS           df       MS      Number of obs   =     8,317
+-------------+----------------------------------   F(1, 8315)      =      0.08
+       Model |  .329308512         1  .329308512   Prob > F        =    0.7784
+    Residual |  34573.4674     8,315  4.15796361   R-squared       =    0.0000
+-------------+----------------------------------   Adj R-squared   =   -0.0001
+       Total |  34573.7967     8,316  4.15750321   Root MSE        =    2.0391
+
+------------------------------------------------------------------------------
+lnODAAndAi~d |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        inEU |   .1913883   .6800709     0.28   0.778     -1.14172    1.524497
+       _cons |   18.70412   .0223713   836.07   0.000     18.66027    18.74797
+------------------------------------------------------------------------------
+
+. * Manually create a macro with EU country names
+
+. local EUListFormatted "Austria" "Belgium" "Bulgaria" "Croatia" "Cyprus" "Czech Republic" "Denma
+> rk" "Estonia" "Finland" "France" "Germany" "Greece" "Hungary" "Ireland" "Italy" "Latvia" "Lithu
+> ania" "Luxembourg" "Malta" "Netherlands" "Poland" "Portugal" "Romania" "Slovakia" "Slovenia" "S
+> pain" "Sweden"
+
+. 
+. * Specify the variables for the synth command
+
+. local predictors GDP_PC GDP_PC_PPP GDP_PPP ODAAndAid_Received FDIInflow Tourism_NumberofArrival
+> s TourismReceipts
+
+. local predictors_ln lnFDI lnTourismReceipts lnGDP_PC_PPP lnODAAndAid_Received
+
+. local timevar year
+
+. local unitvar countryid
+
+. foreach country in `EUListFormatted' {
+  2.     synth `predictors' `predictors_ln', trunit(`country') trperiod([Year EU joined]) gen(`co
+> untry'_synth)
+  3. }
+time variable not set, use tsset varname ...
+r(111);
+
+. tsset countryid year
+       panel variable:  countryid (strongly balanced)
+        time variable:  year, 1960 to 2018
+                delta:  1 unit
+
+. 
+. * Run the synth command for each EU country
+
+. foreach country in `EUListFormatted' {
+  2.     synth `predictors' `predictors_ln', trunit(`country') trperiod([Year EU joined]) gen(`co
+> untry'_synth)
+  3. }
+trunit() invalid -- invalid number
+r(121);
+
+. * Loop over each EU country and apply the synth command
+
+. foreach country in `EUListFormatted' {
+  2.     * Find the year each country joined
+.     local joinYear = yearjoined if country == "`country'"
+  3.     
+.     * Apply the synth command
+.     synth `predictors' `predictors_ln', trunit("`country'") trperiod(`joinYear') gen(`country'_
+> synth)
+  4. }
+if not allowed
+r(101);
+
+. 
+. synth `predictors' `predictors_ln', trunit("Austria") trperiod([Year Austria joined]) gen(Austr
+> ia_synth)
+trunit() invalid -- invalid number
+r(121);
+
+. 
+. egen EUList = group(country) if yearjoined != .
+(11446 missing values generated)
+
+. 
+. * Loop through each EU country and apply the synth command
+
+. levelsof country if inEU == 1, local(EU_countries)
+`"Austria"' `"Belgium"' `"Bulgaria"' `"Croatia"' `"Cyprus"' `"Czech Republic"' `"Estonia"' `"Finl
+> and"' `"France"' `"Germany"' `"Greece"' `"Hungary"' `"Ireland"' `"Italy"' `"Latvia"' `"Lithuani
+> a"' `"Luxembourg"' `"Malta"' `"Netherlands"' `"Poland"' `"Portugal"' `"Romania"' `"Slovenia"' `
+> "Spain"' `"Sweden"'
+
+. foreach country in `EU_countries' {
+  2.     * Get the joining year for the current country
+.     sum yearjoined if country == "`country'", meanonly
+  3.     local joinYear = r(mean)
+  4. exit, clear
+  5. exit, clear
+  6.   7  8cd "/Users/xzhcandice/Documents/W2/Econ203Data"
+  9. capture log close
+ 10. log using "finalpaper.log", text replace
+ 11. clear
+ 12. 
+. use wbicleaned.dta, clear
+ 13.  14 15 16clear
+ 17. clear
+ 18. c;ear
+ 19. clear
+ 20. 
+. 
+. 
+. clear
+ 21. use wbicleaned.dta, clear
+ 22. 
+. exit
+ 23. exit
+ 24. exit, clear
+ 25. exit, clear

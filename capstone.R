@@ -36,6 +36,7 @@ treatment_names <- data_with_region %>%
   distinct(country) %>%
   pull(country)
 
+treatment_units
 treatment_names
 
 control_units <- data_with_region %>%
@@ -56,7 +57,7 @@ control_names
 prepare_plot_data <- function(treatment_unit, data_with_region, control_units, yearjoin) {
   dataprep.out <- dataprep(
     foo = data_with_region,
-    predictors = c( 'GDP_PC', 'PopDensity', 'PercentUrban',
+    predictors = c('PopDensity', 'PercentUrban',
        'ElectricPowerConsumption', 'FDIInflow', 'Percent_Exports_GDP',
        'Percent_Imports_GDP', 'Remittances_Paid', 'Remittances_Received',
        'AirTransport', 'Industry_ValueAdded', 'Manuf_ValueAdded', 'CO2_manu',
@@ -174,14 +175,29 @@ dev.off()
 #  gaps <- dataprep.out$Y1plot - (dataprep.out$Y0plot %*% synth.out$solution.w)
 #  gaps[1:3, 1]
 
+#Example of Spain
+treatment_unit <- 9
+  yearjoin <- data_with_region %>%
+  filter(region_no == treatment_unit) %>%
+  distinct(yearjoined) %>%
+  pull(yearjoined)
 
-#  synth.tables <- synth.tab(dataprep.res = dataprep.out,
-#                            synth.res    = synth.out
-#                            )
+  country_name <- data_with_region %>%
+  filter(region_no == treatment_unit) %>%
+  distinct(country) %>%
+  pull(country)
 
-# synth.tables$tab.pred
-# synth.tables$tab.v
-# synth.tables$tab.w
+  result <- prepare_plot_data(treatment_unit, data_with_region, control_units, yearjoin )
+  dataprep.out <- result$dataprep_out
+  synth.out <- result$synth_out
+
+ synth.tables <- synth.tab(dataprep.res = dataprep.out,
+                           synth.res    = synth.out
+                           )
+
+synth.tables$tab.pred
+synth.tables$tab.v
+synth.tables$tab.w
 
 #  gaps.plot(synth.res = synth.out,
 #            dataprep.res = dataprep.out,

@@ -25,5 +25,5 @@ To replicate this analysis:
 2. Ensure Python and R environments are properly set up with necessary libraries and packages as listed in `requirements.txt` and `R_packages.txt`.
 3. Run `data_cleaning.py` to preprocess the dataset.
 4. Execute `capstone.R` to perform the Synthetic Control analysis and generate results.
-5. Review `Xie_Capstone Poster (1).pdf` and `Xie_Capstone Abstracts.pdf` for a summarized version of the findings.
+5. Review `Xie_Capstone Poster (2).pdf` and `Xie_Capstone Abstracts.pdf` for a summarized version of the findings.
 

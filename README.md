@@ -15,7 +15,7 @@ The project is structured to investigate the causal impact of joining the Europe
 - `capstone.R`: R script for executing the Synthetic Control Method and generating results.
 - `data_cleaning.py`: Python script for preliminary data cleaning and preprocessing.
 - `eu_cleaned.xlsx`, `eu_data.xlsx`, `wbicleaned.dta`: Data files used in the analysis.
-- `Xie_Capstone Abstracts.pdf`, `Xie_Capstone Poster (1).pdf`: Academic abstracts and poster summarizing the project findings.
+- `Xie_Capstone Abstracts.pdf`, `Xie_Capstone Poster (2).pdf`: Academic abstracts and poster summarizing the project findings.
 - `treatmentEffects.xlsx`: Detailed treatment effects computed for each EU member included in the study.
 
 ## Getting Started
